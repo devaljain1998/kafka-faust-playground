@@ -15,10 +15,14 @@ class User(faust.Record):
 
 users_topic = app.topic('quickstart-events-v5', key_type=str, value_type=User, value_serializer='json')
 users_table = app.Table('users', default=int)
-
 enriched_users_topic = app.topic('quickstart-enriched')
 
-# def enrich_user(user):
+def json_serialize(obj):
+    return json.dumps(obj)
+
+async def enrich_user(user) -> dict:
+    return {'id': user.id, 'email': user.email, 'visits': users_table[user.id]}
+
 
 @app.agent(users_topic)
 async def say_hi(users):
@@ -31,3 +35,13 @@ async def save(users):
         print(user, type(user))
         users_table[user.id] += 1
         print(f"{user.id} : {users_table[user.id]}")
+        
+@app.agent(users_topic)
+async def enrich_users(users):
+    async for user in users:
+        user_data = await enrich_user(user)
+        serialized_data = json_serialize(user_data)
+        fm = enriched_users_topic.as_future_message(key=user.id, value=serialized_data)
+        metadata = await enriched_users_topic.publish_message(fm)
+        print(f'User: {user.username} - pushed to - enriched-users')
+        print(metadata)
