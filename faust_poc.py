@@ -1,6 +1,7 @@
 import faust
 import json
 import ast
+from constants import PARTITIONS
 
 app = faust.App(
     'faust_poc',
@@ -16,6 +17,21 @@ class User(faust.Record):
 users_topic = app.topic('quickstart-events-v5', key_type=str, value_type=User, value_serializer='json')
 users_table = app.Table('users', default=int)
 enriched_users_topic = app.topic('quickstart-enriched')
+
+# # POC:
+# new_topic = app.topic('new-topic', partitions=PARTITIONS['USER'])
+# new_topic_v1 = app.topic('new-topic-v1', partitions=PARTITIONS['USER'])
+
+# @app.agent(new_topic)
+# async def see_new_topic_data(data):
+#     async for datum in data:
+#         print(datum)
+        
+# @app.agent(new_topic_v1)
+# async def see_new_topic_v1_data(data):
+#     async for datum in data:
+#         print(datum)
+        
 
 def json_serialize(obj):
     return json.dumps(obj)
