@@ -97,3 +97,22 @@ def hello_world(request):
     print(results)
 
     return 'Working'
+
+"""
+Queries:
+user_es (Not full -> lacks interests, area, education-level, experience-level)
+(
+SELECT
+  count(*)
+  # t1.id, t1.first_name, t1.last_name, t2.gender, t3.name as language
+FROM
+  `apnatime-fbc72.dataset_postgres_production.core_user` t1
+INNER JOIN `apnatime-fbc72.dataset_postgres_production.core_userprofile` t2 ON
+  t1.id = t2.user_id
+INNER JOIN `apnatime-fbc72.dataset_postgres_production.core_language` t3 ON
+  t2.language_id = t3.id
+WHERE 
+    t1.last_login >= TIMESTAMP(DATE_ADD(CURRENT_DATE(), INTERVAL -30 DAY));LIMIT
+  10;
+)
+"""
